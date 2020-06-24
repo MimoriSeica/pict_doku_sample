@@ -52,9 +52,11 @@ class Application(tkinter.Frame):
 
     def clear_canvas(self):
         self.test_canvas.delete(tkinter.ALL)
+        self.im = Image.new('RGB', (600, 600), 'white')
+        self.draw = ImageDraw.Draw(self.im)
 
     def save_canvas(self):
-        self.test_canvas.postscript(file='out.ps', colormode='color')
+        self.im.save('out.jpg')
 
     def paint(self, event):
         if self.eraser_on:
