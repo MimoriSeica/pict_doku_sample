@@ -183,8 +183,8 @@ class Application(tkinter.Frame):
 
         random.shuffle(hint_place)
         nums = [[0 for i in range(9)] for j in range(9)]
-        nums = [[0 for i in range(9)] for j in range(9)]
         self.put_number(hint_place, nums, 0)
+        print(np.array(nums))
 
         for hint in hint_place:
             y = hint[0]
