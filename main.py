@@ -1,5 +1,6 @@
 import tkinter
 import numpy as np
+import copy
 from tkinter import colorchooser
 from PIL import Image, ImageDraw, ImageFilter
 import random
@@ -84,6 +85,76 @@ class Application(tkinter.Frame):
         self.old_x = event.x
         self.old_y = event.y
 
+    def check_number(self, nums, y, x, num):
+        nums[y][x] = num
+        for i in range(9):
+            for j in range(9):
+                if nums[i][j] == 0:
+                    s = set()
+                    for yy in range(9):
+                        for xx in range(9):
+                            if nums[yy][xx] == 0:
+                                continue
+                            flag = False
+                            if (yy // 3 == i // 3) and (xx // 3 == j // 3):
+                                flag = True
+                            if (yy == i) or (xx == j):
+                                flag = True
+                            if flag:
+                                s.add(nums[yy][xx])
+                    if len(s) == 9:
+                        nums[y][x] = 0
+                        return False
+                    if len(s) == 8:
+                        for nxt in range(1, 10):
+                            if nxt in s:
+                                continue
+                            if self.check_number(nums, i, j, nxt):
+                                return True
+                            else:
+                                nums[y][x] = 0
+                                return False
+
+                else:
+                    for yy in range(9):
+                        for xx in range(9):
+                            if nums[yy][xx] == 0:
+                                continue
+                            if yy == i and xx == j:
+                                continue
+                            flag = False
+                            if (yy // 3 == i // 3) and (xx // 3 == j // 3):
+                                flag = True
+                            if (yy == i) or (xx == j):
+                                flag = True
+                            if flag and nums[i][j] == nums[yy][xx]:
+                                nums[y][x] = 0
+                                return False
+
+        return True
+
+    def put_number(self, hint_place, nums, now):
+        if now == len(hint_place):
+            return True
+
+        y = hint_place[now][0]
+        x = hint_place[now][1]
+
+        if nums[y][x] != 0:
+            return self.put_number(hint_place, nums, now + 1)
+
+        lis = list(range(1, 10))
+        random.shuffle(lis)
+        for num in lis:
+            if not self.check_number(nums, y, x, num):
+                continue
+
+            nums[y][x] = num
+            if self.put_number(hint_place, nums, now + 1):
+                return True
+            nums[y][x] = 0
+        return False
+
     def make_sudoku(self):
         self.sudoku_canvas.delete(tkinter.ALL)
         arr = np.array(self.im.convert("L").filter(ImageFilter.FIND_EDGES), 'int')
@@ -111,7 +182,9 @@ class Application(tkinter.Frame):
                 hint_place.append([i, j])
 
         random.shuffle(hint_place)
-        nums = [[set() for i in range(9)] for j in range(9)]
+        nums = [[0 for i in range(9)] for j in range(9)]
+        nums = [[0 for i in range(9)] for j in range(9)]
+        self.put_number(hint_place, nums, 0)
 
         for hint in hint_place:
             y = hint[0]
@@ -120,30 +193,7 @@ class Application(tkinter.Frame):
             from_y = 30 + 60 * y
             to_x = 30 + 60 * (x + 1)
             to_y = 30 + 60 * (y + 1)
-
-            lis = list(range(1, 10))
-            random.shuffle(lis)
-            for num in lis:
-                if num in nums[y][x]:
-                    continue
-
-                nums[y][x].add(num)
-                self.sudoku_canvas.create_text(30 + from_x, 30 + from_y, text = '{}'.format(num), font = ('', 40))
-                for i in range(9):
-                    nums[i][x].add(num)
-                for i in range(9):
-                    nums[y][i].add(num)
-
-                for i in range(9):
-                    if (i // 3) != (y // 3):
-                        continue
-                    for j in range(9):
-                        if (j // 3) != (x // 3):
-                            continue
-
-                        nums[i][j].add(num)
-
-                break
+            self.sudoku_canvas.create_text(30 + from_x, 30 + from_y, text = '{}'.format(nums[y][x]), font = ('', 40))
 
         for x in range(30, 571, 60):
             w = 5
