@@ -2,6 +2,7 @@ import tkinter
 import numpy as np
 from tkinter import colorchooser
 from PIL import Image, ImageDraw, ImageFilter
+import random
 
 class Application(tkinter.Frame):
     def __init__(self, master=None):
@@ -95,6 +96,7 @@ class Application(tkinter.Frame):
             for i in range(h-1):
                 arr[i+1, j] += arr[i, j]
 
+        hint_place = []
         for i in range(9):
             for j in range(9):
                 from_x = 30 + 60 * j
@@ -102,10 +104,46 @@ class Application(tkinter.Frame):
                 to_x = 30 + 60 * (j + 1)
                 to_y = 30 + 60 * (i + 1)
 
-                if arr[to_y, to_x] - arr[from_y - 1, to_x] - arr[to_y, from_x - 1] + arr[from_y - 1, from_x - 1] == 0:
+                if arr[to_y - 10, to_x - 10] - arr[from_y + 9, to_x - 10] - arr[to_y - 10, from_x + 9] + arr[from_y + 9, from_x + 9] == 0:
                     continue
 
                 self.sudoku_canvas.create_rectangle(from_x, from_y, to_x, to_y, fill = '#AAAAAA', stipple = 'gray25')
+                hint_place.append([i, j])
+
+        random.shuffle(hint_place)
+        nums = [[set() for i in range(9)] for j in range(9)]
+
+        for hint in hint_place:
+            y = hint[0]
+            x = hint[1]
+            from_x = 30 + 60 * x
+            from_y = 30 + 60 * y
+            to_x = 30 + 60 * (x + 1)
+            to_y = 30 + 60 * (y + 1)
+
+            lis = list(range(1, 10))
+            random.shuffle(lis)
+            for num in lis:
+                if num in nums[y][x]:
+                    continue
+
+                nums[y][x].add(num)
+                self.sudoku_canvas.create_text(30 + from_x, 30 + from_y, text = '{}'.format(num), font = ('', 40))
+                for i in range(9):
+                    nums[i][x].add(num)
+                for i in range(9):
+                    nums[y][i].add(num)
+
+                for i in range(9):
+                    if (i // 3) != (y // 3):
+                        continue
+                    for j in range(9):
+                        if (j // 3) != (x // 3):
+                            continue
+
+                        nums[i][j].add(num)
+
+                break
 
         for x in range(30, 571, 60):
             w = 5
