@@ -18,6 +18,25 @@ class Application(tkinter.Frame):
 
         self.sudoku_pad = 30
         self.sudoku_width = 30
+        self.related_map = self.make_related_map()
+
+    def make_related_map(self):
+        ret = [[[] for i in range(9)] for j in range(9)]
+        for i in range(9):
+            for j in range(9):
+                for yy in range(9):
+                    for xx in range(9):
+                        if (i == yy) and (j == xx):
+                            continue
+                        flag = False
+                        if (yy // 3 == i // 3) and (xx // 3 == j // 3):
+                            flag = True
+                        if (yy == i) or (xx == j):
+                            flag = True
+                        if flag:
+                            ret[i][j].append((yy, xx))
+
+        return ret
 
     def create_widgets(self):
         self.vr = tkinter.IntVar()
@@ -91,20 +110,17 @@ class Application(tkinter.Frame):
             for j in range(9):
                 if nums[i][j] == 0:
                     s = set()
-                    for yy in range(9):
-                        for xx in range(9):
-                            if nums[yy][xx] == 0:
-                                continue
-                            flag = False
-                            if (yy // 3 == i // 3) and (xx // 3 == j // 3):
-                                flag = True
-                            if (yy == i) or (xx == j):
-                                flag = True
-                            if flag:
-                                s.add(nums[yy][xx])
+                    for mp in self.related_map[i][j]:
+                        yy = mp[0]
+                        xx = mp[1]
+                        if nums[yy][xx] == 0:
+                            continue
+                        s.add(nums[yy][xx])
+
                     if len(s) == 9:
                         nums[y][x] = 0
                         return False
+
                     if len(s) == 8:
                         for nxt in range(1, 10):
                             if nxt in s:
@@ -116,20 +132,14 @@ class Application(tkinter.Frame):
                                 return False
 
                 else:
-                    for yy in range(9):
-                        for xx in range(9):
-                            if nums[yy][xx] == 0:
-                                continue
-                            if yy == i and xx == j:
-                                continue
-                            flag = False
-                            if (yy // 3 == i // 3) and (xx // 3 == j // 3):
-                                flag = True
-                            if (yy == i) or (xx == j):
-                                flag = True
-                            if flag and nums[i][j] == nums[yy][xx]:
-                                nums[y][x] = 0
-                                return False
+                    for mp in self.related_map[i][j]:
+                        yy = mp[0]
+                        xx = mp[1]
+                        if nums[yy][xx] == 0:
+                            continue
+                        if nums[i][j] == nums[yy][xx]:
+                            nums[y][x] = 0
+                            return False
 
         return True
 
@@ -184,7 +194,6 @@ class Application(tkinter.Frame):
         random.shuffle(hint_place)
         nums = [[0 for i in range(9)] for j in range(9)]
         self.put_number(hint_place, nums, 0)
-        print(np.array(nums))
 
         for hint in hint_place:
             y = hint[0]
