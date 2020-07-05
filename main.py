@@ -180,20 +180,55 @@ class Application(tkinter.Frame):
         hint_place = []
         for i in range(9):
             for j in range(9):
-                from_x = 30 + 60 * j
-                from_y = 30 + 60 * i
-                to_x = 30 + 60 * (j + 1)
-                to_y = 30 + 60 * (i + 1)
+                from_x = 30 + 60 * j + 9
+                from_y = 30 + 60 * i + 9
+                to_x = 30 + 60 * (j + 1) - 10
+                to_y = 30 + 60 * (i + 1) - 10
 
-                if arr[to_y - 10, to_x - 10] - arr[from_y + 9, to_x - 10] - arr[to_y - 10, from_x + 9] + arr[from_y + 9, from_x + 9] == 0:
+                if arr[to_y, to_x] - arr[from_y, to_x] - arr[to_y, from_x] + arr[from_y, from_x] == 0:
                     continue
 
-                self.sudoku_canvas.create_rectangle(from_x, from_y, to_x, to_y, fill = '#AAAAAA', stipple = 'gray25')
+                hist = {}
+                for y in range(from_y - 9, to_y + 10):
+                    for x in range(from_x - 9, to_x + 10):
+                        r,g,b = self.im.getpixel((x,y))
+                        if (r == 255) and (g == 255) and (b == 255):
+                            continue
+
+                        if (r, g, b) in hist:
+                            hist[(r, g, b)] += 1
+                        else:
+                            hist[(r, g, b)] = 1
+
+                c = (255, 255, 255)
+                max_freq = 0;
+
+                for key, val in hist.items():
+                    if max_freq < val:
+                        c = key
+
+                color_str = '#' + format(min(c[0]+100, 255), '02x') + format(min(c[1]+100, 255), '02x') + format(min(c[2]+100, 255), '02x')
+                self.sudoku_canvas.create_rectangle(from_x - 10,
+                                                    from_y - 10,
+                                                    to_x + 10,
+                                                    to_y + 10,
+                                                    fill = color_str,
+                                                    stipple = 'gray25')
                 hint_place.append([i, j])
 
         random.shuffle(hint_place)
         nums = [[0 for i in range(9)] for j in range(9)]
-        self.put_number(hint_place, nums, 0)
+        while True:
+            self.put_number(hint_place, nums, 0)
+            flag = True
+            for mp in hint_place:
+                y = mp[0]
+                x = mp[1]
+                if nums[y][x] == 0:
+                    flag = False
+
+            if flag:
+                break
 
         for hint in hint_place:
             y = hint[0]
