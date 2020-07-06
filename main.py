@@ -207,7 +207,7 @@ class Application(tkinter.Frame):
                     if max_freq < val:
                         c = key
 
-                color_str = '#' + format(min(c[0]+100, 255), '02x') + format(min(c[1]+100, 255), '02x') + format(min(c[2]+100, 255), '02x')
+                color_str = '#' + format(c[0] + (255 - c[0]) // 2, '02x') + format(c[1] + (255 - c[1]) // 2, '02x') + format(c[2] + (255 - c[2]) // 2, '02x')
                 self.sudoku_canvas.create_rectangle(from_x - 10,
                                                     from_y - 10,
                                                     to_x + 10,
